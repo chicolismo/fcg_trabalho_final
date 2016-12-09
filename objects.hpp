@@ -137,8 +137,15 @@ Matrix<Face> *read_image() {
 
 class Camera {
 public:
-    GLfloat f_aspect, angle;
+    double velocity = 1.0;
+
+    const double min_velocity = 1.0;
+    const double max_velocity = 10;
+
+    GLfloat f_aspect;
     GLdouble atx, aty, atz, tox, toy, toz;
+
+    Matrix<Face> *matrix;
 
     Camera(GLdouble atx, GLdouble aty, GLdouble atz, GLdouble tox, GLdouble toy, GLdouble toz) :
         atx(atx), aty(aty), atz(atz), tox(tox), toy(toy), toz(toz) {}
@@ -150,17 +157,54 @@ public:
         toy = tox * sin_theta + toy * cos_theta;
     }
 
+    void set_matrix(Matrix<Face> *matrix) {
+        this->matrix = matrix;
+    }
+
     void move_forward() {
         const double x_vector = tox - atx;
         const double y_vector = toy - aty;
         const double norm = std::sqrt(std::pow(x_vector, 2.0) + std::pow(y_vector, 2.0));
-        const double normalized_vector_x = x_vector / norm;
-        const double normalized_vector_y = y_vector / norm;
+        const double normalized_vector_x = (x_vector / norm) * velocity;
+        const double normalized_vector_y = (y_vector / norm) * velocity;
 
-        atx += normalized_vector_x;
-        aty += normalized_vector_y;
-        tox += normalized_vector_x;
-        toy += normalized_vector_y;
+        /*
+         * TODO: Antes de mover, verificar se a soma to vetor normalizado com a posição atual
+         * se encontra dentro do mapa, caso contrário, não mover a câmera.
+         */
+
+        const double new_atx = atx + normalized_vector_x;
+        const double new_aty = aty + normalized_vector_y;
+        const double new_tox = tox + normalized_vector_x;
+        const double new_toy = toy + normalized_vector_y;
+
+        if (new_atx <= matrix->width && new_atx >= 0 && new_aty <= matrix->height && new_aty >= 0) {
+            atx = new_atx;
+            aty = new_aty;
+            tox = new_tox;
+            toy = new_toy;
+
+            int i = (int) (std::floor(atx));
+            int j = (int) (std::floor(aty));
+            const Face &f = matrix->at(i, j);
+
+            double z_sum = 0.0;
+            for (const Point &v : f.vertices) {
+                z_sum += v.z;
+            }
+            z_sum /= 4;
+
+            atz = z_sum + 4;
+        }
+    }
+
+    void change_velocity(const double amount) {
+        velocity += amount;
+        if (velocity > max_velocity) {
+            velocity = max_velocity;
+        } else if (velocity < min_velocity) {
+            velocity = min_velocity;
+        }
     }
 };
 

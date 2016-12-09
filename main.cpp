@@ -20,7 +20,9 @@ void init() {
 
     surface = read_image();
     //camera = new Camera(500, 500, 200, 0, 0, 0);
-    camera = new Camera(0, 0, 2, 200, 200, 10);
+    camera = new Camera(0, 0, 4, 200, 200, 10);
+
+    camera->set_matrix(surface);
 }
 // }}}
 
@@ -80,6 +82,18 @@ void special_keys(int key, int x, int y) {
     glutPostRedisplay();
 }
 
+void normal_keys(unsigned char key, int x, int y) {
+    switch (key) {
+        case ']':
+            camera->change_velocity(1.0);
+            break;
+        case '[':
+            camera->change_velocity(-1.0);
+            break;
+    }
+    glutPostRedisplay();
+}
+
 // {{{ Main
 int main(int argc, char **argv) {
     glutInit(&argc, argv);
@@ -89,13 +103,14 @@ int main(int argc, char **argv) {
     glutDisplayFunc(render_scene);
     glutReshapeFunc(world_reshape);
     glutSpecialFunc(special_keys);
+    glutKeyboardFunc(normal_keys);
 
     init();
 
     glutMainLoop();
 
-    delete surface;
     delete camera;
+    delete surface;
 
     return 0;
 }
