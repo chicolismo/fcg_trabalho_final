@@ -37,8 +37,6 @@ void world_reshape(GLsizei width, GLsizei height) {
 // }}}
 
 
-double rotation_angle = 0.0f;
-
 // {{{ Render Scene
 void render_scene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -50,37 +48,33 @@ void render_scene() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-
     gluLookAt(camera->atx, camera->aty, camera->atz,
             camera->tox, camera->toy, camera->toz, 0, 0, 1);
 
-    glPushMatrix();
-
-    glRotatef(rotation_angle, 0.0f, 0.0f, 1.0f);
-    glTranslatef(-camera->atx, -camera->aty, 0);
-
     surface->render();
-
-    glPopMatrix();
 
     glutSwapBuffers();
 }
 // }}}
 
+const double CAMERA_ROTATION_ANGLE = 0.174533; // ângulo de rotação em radianos
+
 void special_keys(int key, int x, int y) {
     switch (key) {
         case GLUT_KEY_UP:
+            camera->move_forward();
             break;
 
         case GLUT_KEY_DOWN:
+            //camera->move_backward();
             break;
 
         case GLUT_KEY_RIGHT:
-            rotation_angle += 10.0f;
+            camera->rotate(-CAMERA_ROTATION_ANGLE);
             break;
 
         case GLUT_KEY_LEFT:
-            rotation_angle -= 10.0f;
+            camera->rotate(CAMERA_ROTATION_ANGLE);
             break;
     }
     glutPostRedisplay();

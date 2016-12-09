@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <cmath>
 
 class Point {
 public:
@@ -136,18 +137,31 @@ Matrix<Face> *read_image() {
 
 class Camera {
 public:
-    GLfloat rotation_angle = 0.0;
-
     GLfloat f_aspect, angle;
     GLdouble atx, aty, atz, tox, toy, toz;
 
     Camera(GLdouble atx, GLdouble aty, GLdouble atz, GLdouble tox, GLdouble toy, GLdouble toz) :
         atx(atx), aty(aty), atz(atz), tox(tox), toy(toy), toz(toz) {}
 
-    //void rotate_right() {
-        //glPushMatrix();
-        //glTranslatef(-atx, -aty, -atz);
-    //}
+    void rotate(double angle) {
+        const double sin_theta = std::sin(angle);
+        const double cos_theta = std::cos(angle);
+        tox = tox * cos_theta - toy * sin_theta;
+        toy = tox * sin_theta + toy * cos_theta;
+    }
+
+    void move_forward() {
+        const double x_vector = tox - atx;
+        const double y_vector = toy - aty;
+        const double norm = std::sqrt(std::pow(x_vector, 2.0) + std::pow(y_vector, 2.0));
+        const double normalized_vector_x = x_vector / norm;
+        const double normalized_vector_y = y_vector / norm;
+
+        atx += normalized_vector_x;
+        aty += normalized_vector_y;
+        tox += normalized_vector_x;
+        toy += normalized_vector_y;
+    }
 };
 
 
