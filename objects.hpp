@@ -201,7 +201,7 @@ Matrix<Face> *read_file(const std::string &filename) {
     }
     file.close();
 
-    return matrix;
+    return std::move(matrix);
 }
 
 class Camera {
