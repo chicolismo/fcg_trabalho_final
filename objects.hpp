@@ -12,7 +12,7 @@
 #include <sstream>
 #include <string>
 #include <cmath>
-#include <opencv2/opencv.hpp>
+//#include <opencv2/opencv.hpp>
 
 class Point {
 public:
@@ -136,7 +136,6 @@ void print_matrix(Matrix<T> &m) {
 
 /* TODO: Incluir de volta quando terminar o trabalho */
 /*
-*/
 Matrix<Face> *read_image() {
     //cv::Mat image = cv::imread("image.jpg");
     //cv::Mat image = cv::imread("south_park.png");
@@ -165,6 +164,7 @@ Matrix<Face> *read_image() {
     }
     return matrix;
 }
+*/
 
 void read_file(Matrix<Face> **matrix, const std::string &filename) {
     std::ifstream file;
