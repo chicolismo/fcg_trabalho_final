@@ -1,7 +1,11 @@
 #ifndef OBJECTS_HPP_
 #define OBJECTS_HPP_
 
+#ifdef __APPLE__
 #include <GLUT/glut.h>
+#else
+#include <gl/glut.h>
+#endif
 #include <vector>
 #include <iostream>
 #include <fstream>
