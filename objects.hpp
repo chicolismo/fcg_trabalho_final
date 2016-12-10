@@ -14,6 +14,9 @@
 #include <sstream>
 #include <string>
 #include <cmath>
+#include <cstdlib>
+
+class Enemy;
 
 class Point {
 public:
@@ -86,27 +89,12 @@ public:
     }
 
     void render() {
-        //Point a = vertices[0];
-        //Point b = vertices[1];
-        //Point c = vertices[2];
-
-        //// Vector BA
-        //float ux = b.x - a.x;
-        //float uy = b.y - a.y;
-        //float uz = b.z - a.z;
-
-        //// Vector BC
-        //float vx = b.x - c.x;
-        //float vy = b.y - c.y;
-        //float vz = b.z - c.z;
-
-        // u x z
-        //glNormal3f(uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx);
         for (auto &v : vertices) {
             glVertex3f(v.x, v.y, v.z);
         }
     }
 };
+
 
 template<typename T>
 class Matrix {
@@ -254,6 +242,103 @@ void read_file(Matrix<Face> **matrix, const std::string &filename) {
     }
     file.close();
 }
+
+class Enemy {
+public:
+    float r = 0.3, g = 0.3, b = 0.9;
+    float step = 0.1f;
+
+    int dir = rand() % 9;
+    int counter = 0;
+    float x, y, z;
+    Matrix<Face> *matrix;
+
+    Enemy(Matrix<Face> *matrix, float x, float y, float z) : x(x), y(y), z(z) {
+        this->matrix = matrix;
+        r = (float) std::rand() / (float) RAND_MAX;
+        g = (float) std::rand() / (float) RAND_MAX;
+        b = (float) std::rand() / (float) RAND_MAX;
+    }
+
+    void move() {
+        if (++counter == 50) {
+            counter = 0;
+            dir = rand() % 9;
+        }
+        switch (dir) {
+            case 0:
+                y += step;
+                break;
+            case 1:
+                x += step;
+                y += step;
+                break;
+            case 2:
+                x += step;
+                break;
+            case 3:
+                x += step;
+                y -= step;
+                break;
+            case 4:
+                y -= step;
+                break;
+            case 5:
+                y -= step;
+                x -= step;
+                break;
+            case 6:
+                x -= step;
+                break;
+            case 7:
+                x -= step;
+                y += step;
+                break;
+
+            case 8: // Não se move
+            default:
+                break;
+        }
+
+
+        int w = matrix->width;
+        int h = matrix->height;
+        if (this->x < 0) {
+            this->x = 0;
+        } else if (this->x > w) {
+            this->x = w;
+        }
+
+        if (this->y < 0) {
+            this->y = 0;
+        } else if (this->y > h) {
+            this->y = h;
+        }
+
+        int j = (int) std::floor(this->x);
+        int i = (int) std::floor(this->y);
+        Face &f = matrix->at(i, j);
+        float new_z = 0.0f;
+        for (Point &p : f.vertices) {
+            new_z += p.z;
+        }
+        this->z = 0.5 + (new_z / 4);
+        /*
+        */
+    }
+
+    void render() {
+        glPushMatrix();
+        glTranslatef(x, y, z);
+        glColor3f(r, g, b);
+        glutSolidCube(2);
+        glTranslatef(0, 0, 2);
+        glutSolidCube(2);
+        glTranslatef(0, 0, 2);
+        glutSolidCube(2);
+        glPopMatrix();
+    }
+};
 
 class Camera {
 public:

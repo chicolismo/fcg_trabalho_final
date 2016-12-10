@@ -7,6 +7,9 @@
 #endif
 
 #include "objects.hpp"
+#include <cstdlib>
+#include <ctime>
+#include <vector>
 
 // Constantes
 //const double PERSPECTIVE_ANGLE = 100.0;
@@ -16,9 +19,10 @@ const double CAMERA_ROTATION_ANGLE = 0.0349066; // Ângulo de rotação de 2 gra
 
 // Globais
 GLuint window;
-GLuint mini_map;
+GLuint info_window;
 Matrix<Face> *surface;
 Camera *camera;
+std::vector<Enemy> enemies;
 
 bool walking = false;
 bool rotating_right = false;
@@ -26,6 +30,8 @@ bool rotating_left = false;
 
 // {{{ Inicialização
 void init() {
+    glEnable(GL_DEPTH_TEST); // Maldita linha que estava faltando.
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
 
@@ -34,6 +40,14 @@ void init() {
 #else
     read_file(&surface, "matrix.txt");
 #endif
+
+    int w = surface->width;
+    int h = surface->height;
+    int n_enemies = 15;
+    enemies.reserve(n_enemies);
+    for (int i = 0; i < n_enemies; ++i) {
+        enemies.push_back(Enemy(surface, std::rand() % w, std::rand() % h, 0));
+    }
 
     camera = new Camera(0, 0, 4, 200, 200, 10);
     camera->set_matrix(surface);
@@ -77,6 +91,11 @@ void render_scene() {
             camera->tox, camera->toy, camera->toz, 0, 0, 1);
     surface->render();
 
+    for (auto &e : enemies) {
+        e.render();
+        e.move();
+    }
+
     if (walking) {
         camera->move_forward();
     }
@@ -98,6 +117,9 @@ void render_scene() {
 
     surface->render();
     camera->render();
+    for (auto &e : enemies) {
+        e.render();
+    }
     glutSwapBuffers();
 }
 // }}}
@@ -114,6 +136,11 @@ void render_idle_scene() {
     gluLookAt(camera->atx, camera->aty, camera->atz,
             camera->tox, camera->toy, camera->toz, 0, 0, 1);
     surface->render();
+
+    for (auto &e : enemies) {
+        e.render();
+        e.move();
+    }
 
     if (walking) {
         camera->move_forward();
@@ -144,6 +171,9 @@ void render_idle_scene() {
 
     surface->render();
     camera->render();
+    for (auto &e : enemies) {
+        e.render();
+    }
     glutSwapBuffers();
 }
 // }}}
@@ -210,8 +240,14 @@ void normal_keys(unsigned char key, int x, int y) {
 }
 // }}}
 
+void info_render_scene() {
+    glClearColor(0, 0, 0, 0.0);
+}
+
 // {{{ Main
 int main(int argc, char **argv) {
+    std::srand(std::time(0));
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
@@ -221,13 +257,13 @@ int main(int argc, char **argv) {
     glutDisplayFunc(render_scene);
     glutReshapeFunc(world_reshape);
     glutSpecialFunc(special_keys);
-
     glutSpecialUpFunc(special_keys_up);
-
     glutKeyboardFunc(normal_keys);
-
-
     glutIdleFunc(render_idle_scene);
+
+    //info_window = glutCreateWindow("Janela Principal");
+    //glutDisplayFunc(info_render_scene);
+    //glutIdleFunc(info_render_scene);
 
     init();
 
