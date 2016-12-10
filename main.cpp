@@ -6,12 +6,12 @@
 #include <gl/glut.h>
 #endif
 
-//#include <opencv2/opencv.hpp>
 #include "objects.hpp"
 
 // Constantes
 //const double PERSPECTIVE_ANGLE = 100.0;
 const double PERSPECTIVE_ANGLE = 45.0;
+const double CAMERA_ROTATION_ANGLE = 0.174533; // Ângulo de rotação de 10 graus em radianos
 
 // Globais
 GLuint window;
@@ -25,11 +25,13 @@ void init() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
 
-    //surface = read_image();
+#ifdef __APPLE__
+    surface = read_image();
+#else
     read_file(&surface, "matrix.txt");
-    //camera = new Camera(500, 500, 200, 0, 0, 0);
-    camera = new Camera(0, 0, 4, 200, 200, 10);
+#endif
 
+    camera = new Camera(0, 0, 4, 200, 200, 10);
     camera->set_matrix(surface);
 }
 // }}}
@@ -93,7 +95,6 @@ void render_scene() {
 }
 // }}}
 
-const double CAMERA_ROTATION_ANGLE = 0.174533; // ângulo de rotação em radianos
 
 void special_keys(int key, int x, int y) {
     switch (key) {
@@ -116,6 +117,7 @@ void special_keys(int key, int x, int y) {
     glutPostRedisplay();
 }
 
+// {{{ Normal keys
 void normal_keys(unsigned char key, int x, int y) {
     switch (key) {
         case ']':
@@ -127,6 +129,7 @@ void normal_keys(unsigned char key, int x, int y) {
     }
     glutPostRedisplay();
 }
+// }}}
 
 // {{{ Main
 int main(int argc, char **argv) {

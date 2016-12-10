@@ -3,16 +3,17 @@
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
+#include <opencv2/opencv.hpp>
 #else
 #include <gl/glut.h>
 #endif
+
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <cmath>
-//#include <opencv2/opencv.hpp>
 
 class Point {
 public:
@@ -34,6 +35,9 @@ public:
 class Face {
 public:
     std::vector<Point> vertices;
+    float red;
+    float green;
+    float blue;
 
     Face() : vertices(4) {}
 
@@ -41,23 +45,40 @@ public:
         operator=(other);
     }
 
+    Face(Point a, Point b, Point c, Point d, float red, float green, float blue) : vertices(4) {
+        vertices[0] = a;
+        vertices[1] = b;
+        vertices[2] = c;
+        vertices[3] = d;
+        this->red = red;
+        this->green = green;
+        this->blue = blue;
+    }
+
     Face(Point a, Point b, Point c, Point d) : Face() {
         vertices[0] = a;
         vertices[1] = b;
         vertices[2] = c;
         vertices[3] = d;
+        this->red = 0.5f;
+        this->green = 0.3f;
+        this->blue = 0.4f;
     }
 
     Face &operator=(const Face &other) {
         for (int i = 0; i < 4; ++i) {
             vertices[i] = other.vertices[i];
         }
+        this->red = other.red;
+        this->green = other.green;
+        this->blue = other.blue;
         return *this;
     }
 
     std::string to_string() const {
         std::stringstream fmt;
         fmt << "\nFace" << '\n';
+        fmt << "Color: " << red << ' ' << green << ' ' << blue << '\n';
         for (auto &v : vertices) {
             fmt << v.to_string() << '\n';
         }
@@ -92,18 +113,20 @@ public:
 
     void render() {
         glBegin(GL_QUADS);
-        glColor3f(0.5f, 0.3f, 0.4f);
         for (auto &obj : array) {
+            glColor3f(obj.red, obj.green, obj.blue);
             obj.render();
         }
         glEnd();
 
-        for (auto &obj : array) {
-            glBegin(GL_LINE_LOOP);
-            glColor3f(0.f, 0.f, 0.f);
-                obj.render();
-            glEnd();
-        }
+        /*
+         *for (auto &obj : array) {
+         *    glBegin(GL_LINE_LOOP);
+         *    glColor3f(0.f, 0.f, 0.f);
+         *        obj.render();
+         *    glEnd();
+         *}
+         */
     }
 
     void dump(const std::string &filename) {
@@ -117,6 +140,9 @@ public:
                 file << p.y << '\n';
                 file << p.z << '\n';
             }
+            file << f.red << '\n';
+            file << f.green << '\n';
+            file << f.blue << '\n';
         }
         file.close();
     }
@@ -134,8 +160,7 @@ void print_matrix(Matrix<T> &m) {
     }
 }
 
-/* TODO: Incluir de volta quando terminar o trabalho */
-/*
+#ifdef __APPLE__
 Matrix<Face> *read_image() {
     //cv::Mat image = cv::imread("image.jpg");
     //cv::Mat image = cv::imread("south_park.png");
@@ -154,17 +179,22 @@ Matrix<Face> *read_image() {
             cv::Vec3b color_c = image.at<cv::Vec3b>(cv::Point(j + 1, i + 1));
             cv::Vec3b color_d = image.at<cv::Vec3b>(cv::Point(j, i + 1));
 
-            Face f(Point(j, i, 0.05 * (color_a[0] + color_a[1] + color_a[2]) / 3.0),
-                   Point(j + 1, i, 0.05 * (color_b[0] + color_b[1] + color_b[2]) / 3.0),
-                   Point(j + 1, i + 1, 0.05 * (color_c[0] + color_c[1] + color_c[2]) / 3.0),
-                   Point(j, i + 1, 0.05 * (color_d[0] + color_d[1] + color_d[2]) / 3.0));
+            float red = (color_a[2] + color_b[2] + color_c[2] + color_d[2]) / 4.0 / 255;
+            float green = (color_a[1] + color_b[1] + color_c[1] + color_d[1]) / 4.0 / 255;
+            float blue = (color_a[0] + color_b[0] + color_c[0] + color_d[0]) / 4.0 / 255;
+
+            Face f(Point(j, i, 0.02 * (color_a[0] + color_a[1] + color_a[2]) / 3.0),
+                   Point(j + 1, i, 0.02 * (color_b[0] + color_b[1] + color_b[2]) / 3.0),
+                   Point(j + 1, i + 1, 0.02 * (color_c[0] + color_c[1] + color_c[2]) / 3.0),
+                   Point(j, i + 1, 0.02 * (color_d[0] + color_d[1] + color_d[2]) / 3.0),
+                   red, green, blue);
 
             matrix->at(i, j) = f;
         }
     }
     return matrix;
 }
-*/
+#endif
 
 void read_file(Matrix<Face> **matrix, const std::string &filename) {
     std::ifstream file;
@@ -175,6 +205,7 @@ void read_file(Matrix<Face> **matrix, const std::string &filename) {
     *matrix = new Matrix<Face>(width, height);
 
     double x, y, z;
+    float red, green, blue;
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
             file >> x;
@@ -197,7 +228,11 @@ void read_file(Matrix<Face> **matrix, const std::string &filename) {
             file >> z;
             Point d(x, y, z);
 
-            Face f(a, b, c, d);
+            file >> red;
+            file >> green;
+            file >> blue;
+
+            Face f(a, b, c, d, red, green, blue);
             (*matrix)->at(i, j) = (f);
         }
     }
