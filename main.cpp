@@ -1,7 +1,12 @@
 // vim: set foldmethod=marker
-#include <GLUT/glut.h>
-#include <opencv2/opencv.hpp>
 
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <gl/glut.h>
+#endif
+
+//#include <opencv2/opencv.hpp>
 #include "objects.hpp"
 
 // Constantes
@@ -10,15 +15,18 @@ const double PERSPECTIVE_ANGLE = 45.0;
 
 // Globais
 GLuint window;
+GLuint mini_map;
 Matrix<Face> *surface;
 Camera *camera;
+
 
 // {{{ Inicialização
 void init() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
 
-    surface = read_image();
+    //surface = read_image();
+    surface = read_file("dump.txt");
     //camera = new Camera(500, 500, 200, 0, 0, 0);
     camera = new Camera(0, 0, 4, 200, 200, 10);
 
@@ -26,34 +34,60 @@ void init() {
 }
 // }}}
 
+double window_width;
+double window_height;
+
 // {{{ World Reshape
 void world_reshape(GLsizei width, GLsizei height) {
     if (height == 0) {
         ++height;
     }
-    glViewport(0, 0, width, height);
+    window_height = height;
+    window_width = width;
     camera->f_aspect = (GLfloat) width / (GLfloat) height;
-    //perspective_viewing();
     glutPostRedisplay();
 }
 // }}}
 
+void mini_map_reshape(GLsizei width, GLsizei height) {
+    if (height == 0) {
+        ++height;
+    }
+    glViewport(0, 0, width, height);
+    camera->f_aspect = (GLfloat) width / (GLfloat) height;
+    glutPostRedisplay();
+}
 
 // {{{ Render Scene
 void render_scene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glViewport(0, 0, window_width, window_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(PERSPECTIVE_ANGLE, camera->f_aspect, 0.1, 500);
-
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
     gluLookAt(camera->atx, camera->aty, camera->atz,
             camera->tox, camera->toy, camera->toz, 0, 0, 1);
-
     surface->render();
+
+    // Mini map
+    //glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
+    //double minimap_width = window_width / 4;
+    //double minimap_height = window_height / 4;
+    //glViewport(window_width - minimap_width, window_height - minimap_height, minimap_width, minimap_height);
+    //glMatrixMode(GL_PROJECTION);
+    //glLoadIdentity();
+    //gluPerspective(PERSPECTIVE_ANGLE, camera->f_aspect, 0.1, 500);
+
+    //glMatrixMode(GL_MODELVIEW);
+    //glLoadIdentity();
+
+    //gluLookAt(camera->atx, camera->aty, camera->atz,
+            //camera->tox, camera->toy, camera->toz, 0, 0, 1);
+
+    //surface->render();
+    // Fim do mini map
 
     glutSwapBuffers();
 }
@@ -99,7 +133,9 @@ int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
+    //window = glutCreateWindow("Janela Principal");
     window = glutCreateWindow("Janela Principal");
+
     glutDisplayFunc(render_scene);
     glutReshapeFunc(world_reshape);
     glutSpecialFunc(special_keys);
@@ -107,7 +143,9 @@ int main(int argc, char **argv) {
 
     init();
 
+    //surface->dump("matrix.txt");
     glutMainLoop();
+
 
     delete camera;
     delete surface;

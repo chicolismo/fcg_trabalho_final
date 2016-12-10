@@ -4,6 +4,8 @@
 #include <GLUT/glut.h>
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <cmath>
 
@@ -70,7 +72,11 @@ private:
     std::vector<T> array;
 
 public:
-    const size_t width, height;
+    size_t width;
+    size_t height;
+
+    Matrix() {
+    }
 
     Matrix(size_t width, size_t height) : height(height), width(width), array(width * height) {
     }
@@ -94,6 +100,22 @@ public:
             glEnd();
         }
     }
+
+    void dump(const std::string &filename) {
+        std::ofstream file;
+        file.open("dump.txt");
+        file << width << '\n';
+        file << height << '\n';
+        for (Face &f : array) {
+            for (Point &p : f.vertices) {
+                file << p.x << '\n';
+                file << p.y << '\n';
+                file << p.z << '\n';
+            }
+        }
+        file.close();
+    }
+
 };
 
 template<typename T>
@@ -107,6 +129,8 @@ void print_matrix(Matrix<T> &m) {
     }
 }
 
+/* TODO: Incluir de volta quando terminar o trabalho */
+/*
 Matrix<Face> *read_image() {
     //cv::Mat image = cv::imread("image.jpg");
     cv::Mat image = cv::imread("south_park.png");
@@ -124,14 +148,55 @@ Matrix<Face> *read_image() {
             cv::Vec3b color_c = image.at<cv::Vec3b>(cv::Point(j + 1, i + 1));
             cv::Vec3b color_d = image.at<cv::Vec3b>(cv::Point(j, i + 1));
 
-            Face f(Point(i, j, 0.05 * (color_a[0] + color_a[1] + color_a[2]) / 3.0),
-                   Point(i, j + 1, 0.05 * (color_b[0] + color_b[1] + color_b[2]) / 3.0),
-                   Point(i + 1, j + 1, 0.05 * (color_c[0] + color_c[1] + color_c[2]) / 3.0),
-                   Point(i + 1, j, 0.05 * (color_d[0] + color_d[1] + color_d[2]) / 3.0));
+            Face f(Point(j, i, 0.05 * (color_a[0] + color_a[1] + color_a[2]) / 3.0),
+                   Point(j + 1, i, 0.05 * (color_b[0] + color_b[1] + color_b[2]) / 3.0),
+                   Point(j + 1, i + 1, 0.05 * (color_c[0] + color_c[1] + color_c[2]) / 3.0),
+                   Point(j, i + 1, 0.05 * (color_d[0] + color_d[1] + color_d[2]) / 3.0));
 
             matrix->at(i, j) = f;
         }
     }
+    return matrix;
+}
+*/
+
+Matrix<Face> *read_file(const std::string &filename) {
+    std::ifstream file;
+    size_t width, height;
+    file.open("dump.txt");
+    file >> width;
+    file >> height;
+    Matrix<Face> *matrix = new Matrix<Face>(width, height);
+
+    double x, y, z;
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            file >> x;
+            file >> y;
+            file >> z;
+            Point a(x, y, z);
+
+            file >> x;
+            file >> y;
+            file >> z;
+            Point b(x, y, z);
+
+            file >> x;
+            file >> y;
+            file >> z;
+            Point c(x, y, z);
+
+            file >> x;
+            file >> y;
+            file >> z;
+            Point d(x, y, z);
+
+            Face f(a, b, c, d);
+            matrix->at(i, j) = (f);
+        }
+    }
+    file.close();
+
     return matrix;
 }
 
@@ -184,16 +249,14 @@ public:
             tox = new_tox;
             toy = new_toy;
 
-            int i = (int) (std::floor(atx));
-            int j = (int) (std::floor(aty));
+            int j = (int) (std::floor(atx));
+            int i = (int) (std::floor(aty));
             const Face &f = matrix->at(i, j);
-
             double z_sum = 0.0;
             for (const Point &v : f.vertices) {
                 z_sum += v.z;
             }
             z_sum /= 4;
-
             atz = z_sum + 4;
         }
     }
