@@ -26,7 +26,7 @@ void init() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
 
     //surface = read_image();
-    surface = read_file("dump.txt");
+    read_file(&surface, "dump.txt");
     //camera = new Camera(500, 500, 200, 0, 0, 0);
     camera = new Camera(0, 0, 4, 200, 200, 10);
 

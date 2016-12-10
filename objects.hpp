@@ -164,13 +164,13 @@ Matrix<Face> *read_image() {
 }
 */
 
-Matrix<Face> *read_file(const std::string &filename) {
+void read_file(Matrix<Face> **matrix, const std::string &filename) {
     std::ifstream file;
     size_t width, height;
     file.open("dump.txt");
     file >> width;
     file >> height;
-    Matrix<Face> *matrix = new Matrix<Face>(width, height);
+    *matrix = new Matrix<Face>(width, height);
 
     double x, y, z;
     for (int i = 0; i < height; ++i) {
@@ -196,12 +196,10 @@ Matrix<Face> *read_file(const std::string &filename) {
             Point d(x, y, z);
 
             Face f(a, b, c, d);
-            matrix->at(i, j) = (f);
+            (*matrix)->at(i, j) = (f);
         }
     }
     file.close();
-
-    return std::move(matrix);
 }
 
 class Camera {
