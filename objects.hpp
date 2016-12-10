@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <cmath>
+#include <opencv2/opencv.hpp>
 
 class Point {
 public:
@@ -107,7 +108,7 @@ public:
 
     void dump(const std::string &filename) {
         std::ofstream file;
-        file.open("dump.txt");
+        file.open(filename);
         file << width << '\n';
         file << height << '\n';
         for (Face &f : array) {
@@ -135,9 +136,11 @@ void print_matrix(Matrix<T> &m) {
 
 /* TODO: Incluir de volta quando terminar o trabalho */
 /*
+*/
 Matrix<Face> *read_image() {
     //cv::Mat image = cv::imread("image.jpg");
-    cv::Mat image = cv::imread("south_park.png");
+    //cv::Mat image = cv::imread("south_park.png");
+    cv::Mat image = cv::imread("heightdata.png");
     cv::Size size = image.size();
 
     const int width = size.width - 1;
@@ -162,12 +165,11 @@ Matrix<Face> *read_image() {
     }
     return matrix;
 }
-*/
 
 void read_file(Matrix<Face> **matrix, const std::string &filename) {
     std::ifstream file;
     size_t width, height;
-    file.open("dump.txt");
+    file.open(filename);
     file >> width;
     file >> height;
     *matrix = new Matrix<Face>(width, height);
