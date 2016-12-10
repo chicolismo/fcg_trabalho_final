@@ -86,6 +86,22 @@ public:
     }
 
     void render() {
+        //Point a = vertices[0];
+        //Point b = vertices[1];
+        //Point c = vertices[2];
+
+        //// Vector BA
+        //float ux = b.x - a.x;
+        //float uy = b.y - a.y;
+        //float uz = b.z - a.z;
+
+        //// Vector BC
+        //float vx = b.x - c.x;
+        //float vy = b.y - c.y;
+        //float vz = b.z - c.z;
+
+        // u x z
+        //glNormal3f(uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx);
         for (auto &v : vertices) {
             glVertex3f(v.x, v.y, v.z);
         }
@@ -146,7 +162,6 @@ public:
         }
         file.close();
     }
-
 };
 
 template<typename T>
@@ -165,6 +180,7 @@ Matrix<Face> *read_image() {
     //cv::Mat image = cv::imread("image.jpg");
     //cv::Mat image = cv::imread("south_park.png");
     cv::Mat image = cv::imread("heightdata.png");
+    //cv::Mat image = cv::imread("heightmap.bmp");
     cv::Size size = image.size();
 
     const int width = size.width - 1;
@@ -241,10 +257,10 @@ void read_file(Matrix<Face> **matrix, const std::string &filename) {
 
 class Camera {
 public:
-    double velocity = 1.0;
+    double velocity = 0.5;
 
-    const double min_velocity = 1.0;
-    const double max_velocity = 10;
+    const double min_velocity = 0.5;
+    const double max_velocity = 5;
 
     GLfloat f_aspect;
     GLdouble atx, aty, atz, tox, toy, toz;
@@ -307,6 +323,14 @@ public:
         } else if (velocity < min_velocity) {
             velocity = min_velocity;
         }
+    }
+
+    void render() {
+        glPushMatrix();
+        glTranslatef(atx, aty, atz);
+        glColor3f(1.0f, 0, 0);
+        glutSolidCube(4.0);
+        glPopMatrix();
     }
 };
 
