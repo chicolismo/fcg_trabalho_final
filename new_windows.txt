@@ -1,0 +1,58 @@
+
+void displayText( float x, float y, int r, int g, int b, const char *string ) {
+	int j = strlen( string );
+
+	glColor3f( r, g, b );
+	glRasterPos2f( x, y );
+	for( int i = 0; i < j; i++ ) {
+		glutBitmapCharacter( GLUT_BITMAP_HELVETICA_12, string[i] );
+	}
+}
+
+void info(){
+     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    displayText(-0.95,0.9,0,0,0,"Objetos restantes: -");
+    displayText(-0.95,0.83,0,0,0,"Objetos adquiridos: -");
+    displayText(-0.95,0.76,0,0,0,"Mudancas de direcao: -");
+    displayText(-0.95,0.62,0,0,0,"Tempo decorrido: -");
+    //caminho percorrido tem que ir em algum lugar
+    glutSwapBuffers();
+}
+
+
+
+
+
+int main(int argc, char **argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+
+       glutInitWindowPosition(830, 40);
+    glutInitWindowSize (300,300);
+    window2 = glutCreateWindow("Estatísticas");
+    glutDisplayFunc(info);
+    init ();
+
+    //window = glutCreateWindow("Janela Principal");
+    glutInitWindowPosition(20, 40);
+    glutInitWindowSize (800,600);
+    window = glutCreateWindow("Janela Principal");
+
+    glutDisplayFunc(render_scene);
+    glutReshapeFunc(world_reshape);
+    glutSpecialFunc(special_keys);
+    glutKeyboardFunc(normal_keys);
+
+    init();
+
+
+    //surface->dump("matrix.txt");
+    glutMainLoop();
+
+
+    delete camera;
+    delete surface;
+
+    return 0;
+}
