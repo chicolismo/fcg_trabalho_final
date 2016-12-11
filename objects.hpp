@@ -169,7 +169,7 @@ Matrix<Face> *read_image() {
     //cv::Mat image = cv::imread("image.jpg");
     //cv::Mat image = cv::imread("south_park.png");
     cv::Mat image = cv::imread("heightdata.png");
-    //cv::Mat image = cv::imread("heightmap.bmp");
+    // cv::Mat image = cv::imread("heightmap.bmp");
     cv::Size size = image.size();
 
     const int width = size.width - 1;
@@ -244,103 +244,6 @@ void read_file(Matrix<Face> **matrix, const std::string &filename) {
     file.close();
 }
 
-class Enemy {
-public:
-    float r = 0.3, g = 0.3, b = 0.9;
-    float step = 0.1f;
-
-    int dir = rand() % 9;
-    int counter = 0;
-    float x, y, z;
-    Matrix<Face> *matrix;
-
-    Enemy(Matrix<Face> *matrix, float x, float y, float z) : x(x), y(y), z(z) {
-        this->matrix = matrix;
-        r = (float) std::rand() / (float) RAND_MAX;
-        g = (float) std::rand() / (float) RAND_MAX;
-        b = (float) std::rand() / (float) RAND_MAX;
-    }
-
-    void move() {
-        if (++counter == 50) {
-            counter = 0;
-            dir = rand() % 9;
-        }
-        switch (dir) {
-            case 0:
-                y += step;
-                break;
-            case 1:
-                x += step;
-                y += step;
-                break;
-            case 2:
-                x += step;
-                break;
-            case 3:
-                x += step;
-                y -= step;
-                break;
-            case 4:
-                y -= step;
-                break;
-            case 5:
-                y -= step;
-                x -= step;
-                break;
-            case 6:
-                x -= step;
-                break;
-            case 7:
-                x -= step;
-                y += step;
-                break;
-
-            case 8: // Não se move
-            default:
-                break;
-        }
-
-
-        int w = matrix->width - 1;
-        int h = matrix->height - 1;
-        if (this->x < 0) {
-            this->x = 0;
-        } else if (this->x > w) {
-            this->x = w;
-        }
-
-        if (this->y < 0) {
-            this->y = 0;
-        } else if (this->y > h) {
-            this->y = h;
-        }
-
-        int j = (int) std::floor(this->x);
-        int i = (int) std::floor(this->y);
-        Face &f = matrix->at(i, j);
-        float new_z = 0.0f;
-        for (Point &p : f.vertices) {
-            new_z += p.z;
-        }
-        this->z = 0.5 + (new_z / 4);
-        /*
-        */
-    }
-
-    void render() {
-        glPushMatrix();
-        glTranslatef(x, y, z + 1);
-        glColor3f(r, g, b);
-        glutSolidCube(2);
-        glTranslatef(0, 0, 2);
-        glutSolidCube(2);
-        glTranslatef(0, 0, 2);
-        glutSolidCube(2);
-        glPopMatrix();
-    }
-};
-
 class Camera {
 public:
     double velocity = 0.5;
@@ -390,8 +293,8 @@ public:
             tox = new_tox;
             toy = new_toy;
 
-            int j = (int) (std::floor(atx));
-            int i = (int) (std::floor(aty));
+            int j = (int)(std::floor(atx));
+            int i = (int)(std::floor(aty));
             const Face &f = matrix->at(i, j);
             double z_sum = 0.0;
             for (const Point &v : f.vertices) {
@@ -406,7 +309,8 @@ public:
         velocity += amount;
         if (velocity > max_velocity) {
             velocity = max_velocity;
-        } else if (velocity < min_velocity) {
+        }
+        else if (velocity < min_velocity) {
             velocity = min_velocity;
         }
     }
@@ -420,5 +324,122 @@ public:
     }
 };
 
+class Enemy {
+public:
+    bool alive = true;
+    float r = 0.3, g = 0.3, b = 0.9;
+    float step = 0.1f;
+
+    int dir = rand() % 9;
+    int counter = 0;
+    float x, y, z;
+    Matrix<Face> *matrix;
+
+    Enemy(Matrix<Face> *matrix, float x, float y, float z) : x(x), y(y), z(z) {
+        this->matrix = matrix;
+        r = (float) std::rand() / (float) RAND_MAX;
+        g = (float) std::rand() / (float) RAND_MAX;
+        b = (float) std::rand() / (float) RAND_MAX;
+    }
+
+    void move() {
+        if (++counter == 50) {
+            counter = 0;
+            dir = rand() % 9;
+        }
+        switch (dir) {
+        case 0:
+            y += step;
+            break;
+        case 1:
+            x += step;
+            y += step;
+            break;
+        case 2:
+            x += step;
+            break;
+        case 3:
+            x += step;
+            y -= step;
+            break;
+        case 4:
+            y -= step;
+            break;
+        case 5:
+            y -= step;
+            x -= step;
+            break;
+        case 6:
+            x -= step;
+            break;
+        case 7:
+            x -= step;
+            y += step;
+            break;
+
+        case 8: // Não se move
+        default:
+            break;
+        }
+
+
+        int w = matrix->width - 1;
+        int h = matrix->height - 1;
+        if (this->x < 0) {
+            this->x = 0;
+        }
+        else if (this->x > w) {
+            this->x = w;
+        }
+
+        if (this->y < 0) {
+            this->y = 0;
+        }
+        else if (this->y > h) {
+            this->y = h;
+        }
+
+        int j = (int) std::floor(this->x);
+        int i = (int) std::floor(this->y);
+        Face &f = matrix->at(i, j);
+        float new_z = 0.0f;
+        for (Point &p : f.vertices) {
+            new_z += p.z;
+        }
+        this->z = 0.5 + (new_z / 4);
+        /*
+        */
+    }
+
+    void render() {
+        if (!alive) {
+            return;
+        }
+        glPushMatrix();
+        glTranslatef(x, y, z + 1);
+        glColor3f(r, g, b);
+        glutSolidCube(2);
+        glTranslatef(0, 0, 2);
+        glutSolidCube(2);
+        glTranslatef(0, 0, 2);
+        glutSolidCube(2);
+        glPopMatrix();
+    }
+
+    float distance_from(float x, float y, float z) {
+        x = this->x - x;
+        y = this->y - y;
+        z = this->z - z;
+        return std::sqrt(x * x + y * y + z * z);
+    }
+
+    bool is_touching(Camera *camera) {
+        return distance_from(camera->atx, camera->aty, camera->atz) <= 5;
+    }
+
+    void die() {
+        alive = false;
+    }
+};
 
 #endif // OBJECTS_HPP_

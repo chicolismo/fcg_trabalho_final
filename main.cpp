@@ -26,6 +26,8 @@ GLuint window;
 GLuint info_window;
 Matrix<Face> *surface;
 Camera *camera;
+int n_enemies = 15;
+int enemies_left = n_enemies;
 std::vector<Enemy> enemies;
 std::vector<Point> coordinates;
 
@@ -49,15 +51,14 @@ void init() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
 
-#ifdef __APPLE__
+    #ifdef __APPLE__
     surface = read_image();
-#else
+    #else
     read_file(&surface, "matrix.txt");
-#endif
+    #endif
 
     int w = surface->width;
     int h = surface->height;
-    int n_enemies = 15;
     enemies.reserve(n_enemies);
     for (int i = 0; i < n_enemies; ++i) {
         enemies.push_back(Enemy(surface, std::rand() % w, std::rand() % h, 0));
@@ -97,17 +98,27 @@ void mini_map_reshape(GLsizei width, GLsizei height) {
     glutPostRedisplay();
 }
 
+void test_colisions() {
+    for (Enemy &e : enemies) {
+        float d = e.distance_from(camera->atx, camera->aty, camera->atz);
+        if (e.is_touching(camera)) {
+            e.die();
+            --enemies_left;
+        }
+    }
+}
+
 // {{{ Render Scene
 void render_scene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, window_width, window_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(PERSPECTIVE_ANGLE, camera->f_aspect, 1, 500);
+    gluPerspective(PERSPECTIVE_ANGLE, camera->f_aspect, 0.1, 500);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(camera->atx, camera->aty, camera->atz,
-            camera->tox, camera->toy, camera->toz, 0, 0, 1);
+              camera->tox, camera->toy, camera->toz, 0, 0, 1);
     surface->render();
 
     for (auto &e : enemies) {
@@ -123,7 +134,8 @@ void render_scene() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
     double minimap_width = window_width / 4;
     double minimap_height = window_height / 4;
-    glViewport(window_width - minimap_width, window_height - minimap_height, minimap_width, minimap_height);
+    glViewport(window_width - minimap_width, window_height - minimap_height, minimap_width,
+               minimap_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(PERSPECTIVE_ANGLE, camera->f_aspect, 0.1, 500);
@@ -132,13 +144,17 @@ void render_scene() {
     glLoadIdentity();
 
     gluLookAt(camera->atx, camera->aty, 90,
-            camera->atx, camera->aty, camera->atz, 0, 1, 0);
+              camera->atx, camera->aty, camera->atz, 0, 1, 0);
 
     surface->render();
     camera->render();
     for (auto &e : enemies) {
         e.render();
     }
+
+
+    test_colisions();
+
     glutSwapBuffers();
 }
 // }}}
@@ -155,7 +171,7 @@ void render_idle_scene() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(camera->atx, camera->aty, camera->atz,
-            camera->tox, camera->toy, camera->toz, 0, 0, 1);
+              camera->tox, camera->toy, camera->toz, 0, 0, 1);
     surface->render();
 
     for (auto &e : enemies) {
@@ -169,7 +185,8 @@ void render_idle_scene() {
 
     if (rotating_right) {
         camera->rotate(-CAMERA_ROTATION_ANGLE);
-    } else if (rotating_left) {
+    }
+    else if (rotating_left) {
         camera->rotate(CAMERA_ROTATION_ANGLE);
     }
 
@@ -177,7 +194,8 @@ void render_idle_scene() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
     double minimap_width = window_width / 4;
     double minimap_height = window_height / 4;
-    glViewport(window_width - minimap_width, window_height - minimap_height, minimap_width, minimap_height);
+    glViewport(window_width - minimap_width, window_height - minimap_height, minimap_width,
+               minimap_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(PERSPECTIVE_ANGLE, camera->f_aspect, 0.1, 500);
@@ -185,16 +203,18 @@ void render_idle_scene() {
     glLoadIdentity();
 
     //gluLookAt(camera->atx, camera->aty, camera->atz,
-            //camera->tox, camera->toy, camera->toz, 0, 0, 1);
+    //camera->tox, camera->toy, camera->toz, 0, 0, 1);
 
     gluLookAt(camera->atx, camera->aty, 90,
-            camera->atx, camera->aty, camera->atz, 0, 1, 0);
+              camera->atx, camera->aty, camera->atz, 0, 1, 0);
 
     surface->render();
     camera->render();
     for (auto &e : enemies) {
         e.render();
     }
+
+    test_colisions();
 
     glutSwapBuffers();
     glutSetWindow(info_window);
@@ -204,23 +224,23 @@ void render_idle_scene() {
 
 void special_keys_up(int key, int x, int y) {
     switch (key) {
-        case GLUT_KEY_UP:
-            walking = false;
-            break;
+    case GLUT_KEY_UP:
+        walking = false;
+        break;
 
-        case GLUT_KEY_DOWN:
-            //camera->move_backward();
-            break;
+    case GLUT_KEY_DOWN:
+        //camera->move_backward();
+        break;
 
-        case GLUT_KEY_RIGHT:
-            ++n_changed_direction;
-            rotating_right = false;
-            break;
+    case GLUT_KEY_RIGHT:
+        ++n_changed_direction;
+        rotating_right = false;
+        break;
 
-        case GLUT_KEY_LEFT:
-            ++n_changed_direction;
-            rotating_left = false;
-            break;
+    case GLUT_KEY_LEFT:
+        ++n_changed_direction;
+        rotating_left = false;
+        break;
     }
     glutPostRedisplay();
 }
@@ -230,21 +250,21 @@ void info_special_keys_up(int key, int x, int y) {
 
 void special_keys(int key, int x, int y) {
     switch (key) {
-        case GLUT_KEY_UP:
-            walking = true;
-            break;
+    case GLUT_KEY_UP:
+        walking = true;
+        break;
 
-        case GLUT_KEY_DOWN:
-            //camera->move_backward();
-            break;
+    case GLUT_KEY_DOWN:
+        //camera->move_backward();
+        break;
 
-        case GLUT_KEY_RIGHT:
-            rotating_right = true;
-            break;
+    case GLUT_KEY_RIGHT:
+        rotating_right = true;
+        break;
 
-        case GLUT_KEY_LEFT:
-            rotating_left = true;
-            break;
+    case GLUT_KEY_LEFT:
+        rotating_left = true;
+        break;
     }
     glutPostRedisplay();
 }
@@ -255,23 +275,23 @@ void info_special_keys(int key, int x, int y) {
 // {{{ Normal keys
 void normal_keys(unsigned char key, int x, int y) {
     switch (key) {
-        case ']':
-            camera->change_velocity(0.5);
-            break;
-        case '[':
-            camera->change_velocity(-0.5);
-            break;
-        case '1':
-            camera->atz -= 10;
-            break;
-        case '2':
-            camera->atz += 10;
-            break;
+    case ']':
+        camera->change_velocity(0.5);
+        break;
+    case '[':
+        camera->change_velocity(-0.5);
+        break;
+    case '1':
+        camera->atz -= 10;
+        break;
+    case '2':
+        camera->atz += 10;
+        break;
 
-        case 'q':
-            clean_up();
-            exit(0);
-            break;
+    case 'q':
+        clean_up();
+        exit(0);
+        break;
     }
     glutPostRedisplay();
 }
@@ -303,18 +323,18 @@ void info() {
         coordinates.push_back(Point(camera->atx, camera->aty, camera->atz));
     }
 
-	displayText(-0.95, 0.90, 0, 0, 0, "Objetos restantes: -");
+    displayText(-0.95, 0.90, 0, 0, 0, "Objetos restantes: -");
     displayText(-0.95, 0.83, 0, 0, 0, "Objetos adquiridos: -");
-	
-	//direcao
-    displayText(-0.95, 0.76, 0, 0, 0, "Mudancas de direcao: -");
-	snprintf(str, 10, "%lld", n_changed_direction); 
-	displayText(0.20, 0.76, 0, 0, 0, str);
 
-	//tempo
-	displayText(-0.95, 0.62, 0, 0, 0, "Tempo decorrido: -");
-	snprintf(str, 10, "%ld", seconds);
-	displayText(0.20, 0.62, 0, 0, 0, str);
+    //direcao
+    displayText(-0.95, 0.76, 0, 0, 0, "Mudancas de direcao: -");
+    snprintf(str, 10, "%lld", n_changed_direction);
+    displayText(0.20, 0.76, 0, 0, 0, str);
+
+    //tempo
+    displayText(-0.95, 0.62, 0, 0, 0, "Tempo decorrido: -");
+    snprintf(str, 10, "%ld", seconds);
+    displayText(0.20, 0.62, 0, 0, 0, str);
 
     glutSwapBuffers();
 }
