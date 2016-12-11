@@ -24,18 +24,31 @@ double window_height;
 long long n_changed_direction = 0;
 GLuint window;
 GLuint info_window;
+GLuint final_window;
+GLuint path_window;
 Matrix<Face> *surface;
 Camera *camera;
 int n_enemies = 15;
 int enemies_left = n_enemies;
 std::vector<Enemy> enemies;
 std::vector<Point> coordinates;
+bool end_status = false;
 
 bool walking = false;
 bool rotating_right = false;
 bool rotating_left = false;
 
+void clean_up();
 void info();
+
+void final_normal_keys(unsigned char key, int x, int y) {
+    switch (key) {
+        case 'q':
+            clean_up();
+            exit(0);
+            break;
+    }
+}
 
 void init_info() {
     //glEnable(GL_DEPTH_TEST); // Maldita linha que estava faltando.
@@ -68,6 +81,33 @@ void init() {
     camera->set_matrix(surface);
 }
 // }}}
+
+void walked_path() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, window_width, window_height);
+
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho (0, surface->width*2, 0, surface->height*2, 0, 500);
+
+    glMatrixMode (GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt (0,0,500,0,0,0,0,1,0);
+
+    surface->render();
+
+    int tam = coordinates.size();
+    for (int i = 0; i<tam-1; i++) {
+        glLineWidth(1.5);
+        glColor3f(1, 0.0, 1.0);
+        glBegin(GL_LINES);
+        glVertex3f(coordinates[i].x, coordinates[i].y, 400);
+        glVertex3f(coordinates[i+1].x, coordinates[i+1].y, 400);
+        glEnd();
+    }
+
+    glutSwapBuffers();
+}
 
 void clean_up() {
     for (auto &p : coordinates) {
@@ -219,6 +259,9 @@ void render_idle_scene() {
     glutSwapBuffers();
     glutSetWindow(info_window);
     info();
+
+    glutSetWindow(path_window);
+    walked_path();
 }
 // }}}
 
@@ -272,6 +315,15 @@ void special_keys(int key, int x, int y) {
 void info_special_keys(int key, int x, int y) {
 }
 
+void display_final_score() {
+    glutInitWindowPosition(900, 40);
+    glutInitWindowSize(300, 300);
+    final_window = glutCreateWindow("Final Score");
+    glutDisplayFunc(info);
+    glutKeyboardFunc(final_normal_keys);
+    init_info();
+}
+
 // {{{ Normal keys
 void normal_keys(unsigned char key, int x, int y) {
     switch (key) {
@@ -287,10 +339,11 @@ void normal_keys(unsigned char key, int x, int y) {
     case '2':
         camera->atz += 10;
         break;
-
     case 'q':
-        clean_up();
-        exit(0);
+        end_status = true;
+        glutDestroyWindow(window);
+        glutDestroyWindow(info_window);
+        display_final_score();
         break;
     }
     glutPostRedisplay();
@@ -312,29 +365,36 @@ void displayText(float x, float y, int r, int g, int b, const char *string) {
 
 
 clock_t c_start;
-long last_second = 0;
+double last_second = 0;
 void info() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    char str[10];
-    long seconds = (clock() - c_start) / CLOCKS_PER_SEC;
+    char str[20];
+    double seconds = ((double) (clock() - c_start)) / CLOCKS_PER_SEC;
 
-    if (seconds != last_second) {
+    if (seconds - last_second > 0.25) {
         last_second = seconds;
         coordinates.push_back(Point(camera->atx, camera->aty, camera->atz));
     }
 
-    displayText(-0.95, 0.90, 0, 0, 0, "Objetos restantes: -");
-    displayText(-0.95, 0.83, 0, 0, 0, "Objetos adquiridos: -");
+	displayText(-0.95, 0.90, 0, 0, 0, "Total de objetos: -");
+	displayText(-0.95, 0.83, 0, 0, 0, "Objetos restantes: -");
+    displayText(-0.95, 0.76, 0, 0, 0, "Objetos adquiridos: -");
 
-    //direcao
-    displayText(-0.95, 0.76, 0, 0, 0, "Mudancas de direcao: -");
-    snprintf(str, 10, "%lld", n_changed_direction);
-    displayText(0.20, 0.76, 0, 0, 0, str);
+	//direcao
+    displayText(-0.95, 0.69, 0, 0, 0, "Mudancas de direcao:");
+	snprintf(str, 10, "%lld", n_changed_direction);
+	displayText(0.20, 0.69, 0, 0, 0, str);
 
-    //tempo
-    displayText(-0.95, 0.62, 0, 0, 0, "Tempo decorrido: -");
-    snprintf(str, 10, "%ld", seconds);
-    displayText(0.20, 0.62, 0, 0, 0, str);
+	//tempo
+	displayText(-0.95, 0.62, 0, 0, 0, "Tempo decorrido:");
+	snprintf(str, 10, "%.0lf", seconds);
+	int i =0;
+	while (str[i] != '\0') {
+        ++i;
+    }
+	str[i] = 's';
+	str[i+1] = '\0';
+ 	displayText(0.20, 0.62, 0, 0, 0, str);
 
     glutSwapBuffers();
 }
@@ -347,6 +407,12 @@ int main(int argc, char **argv) {
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+
+    glutInitWindowPosition(900, 400);
+    glutInitWindowSize(300, 300);
+    path_window = glutCreateWindow("Caminho percorrido");
+    glutDisplayFunc(walked_path);
+    init_info();
 
     glutInitWindowPosition(900, 40);
     glutInitWindowSize(300, 300);
