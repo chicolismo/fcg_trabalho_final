@@ -302,13 +302,19 @@ void info() {
         coordinates.push_back(Point(camera->atx, camera->aty, camera->atz));
     }
 
-    snprintf(str, 10, "%ld", seconds);
-    //displayText(-0.95, 0.9, 0, 0, 0, "Objetos restantes: -");
-    displayText(-0.95, 0.9, 0, 0, 0, str);
+	displayText(-0.95, 0.90, 0, 0, 0, "Objetos restantes: -");
     displayText(-0.95, 0.83, 0, 0, 0, "Objetos adquiridos: -");
+	
+	//direcao
     displayText(-0.95, 0.76, 0, 0, 0, "Mudancas de direcao: -");
-    displayText(-0.95, 0.62, 0, 0, 0, "Tempo decorrido: -");
-    //caminho percorrido tem que ir em algum lugar
+	snprintf(str, 10, "%lld", n_changed_direction); 
+	displayText(0.20, 0.76, 0, 0, 0, str);
+
+	//tempo
+	displayText(-0.95, 0.62, 0, 0, 0, "Tempo decorrido: -");
+	snprintf(str, 10, "%ld", seconds);
+	displayText(0.20, 0.62, 0, 0, 0, str);
+
     glutSwapBuffers();
 }
 
@@ -321,7 +327,7 @@ int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
-    glutInitWindowPosition(830, 40);
+    glutInitWindowPosition(900, 40);
     glutInitWindowSize(300, 300);
     info_window = glutCreateWindow("Estatísticas");
     glutDisplayFunc(info);
