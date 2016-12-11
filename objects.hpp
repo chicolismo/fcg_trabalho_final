@@ -329,7 +329,7 @@ public:
 
     void render() {
         glPushMatrix();
-        glTranslatef(x, y, z);
+        glTranslatef(x, y, z + 1);
         glColor3f(r, g, b);
         glutSolidCube(2);
         glTranslatef(0, 0, 2);

@@ -19,7 +19,7 @@ const double CAMERA_ROTATION_ANGLE = 0.0349066; // Ângulo de rotação de 2 gra
 
 // Globais
 GLuint window;
-GLuint info_window;
+GLuint window2;
 Matrix<Face> *surface;
 Camera *camera;
 std::vector<Enemy> enemies;
@@ -27,6 +27,15 @@ std::vector<Enemy> enemies;
 bool walking = false;
 bool rotating_right = false;
 bool rotating_left = false;
+
+void info();
+
+void init_info() {
+    //glEnable(GL_DEPTH_TEST); // Maldita linha que estava faltando.
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
+}
 
 // {{{ Inicialização
 void init() {
@@ -126,6 +135,8 @@ void render_scene() {
 
 // {{{
 void render_idle_scene() {
+    glutSetWindow(window);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, window_width, window_height);
     glMatrixMode(GL_PROJECTION);
@@ -174,7 +185,10 @@ void render_idle_scene() {
     for (auto &e : enemies) {
         e.render();
     }
+
     glutSwapBuffers();
+    glutSetWindow(window2);
+    info();
 }
 // }}}
 
@@ -199,6 +213,9 @@ void special_keys_up(int key, int x, int y) {
     glutPostRedisplay();
 }
 
+void info_special_keys_up(int key, int x, int y) {
+}
+
 void special_keys(int key, int x, int y) {
     switch (key) {
         case GLUT_KEY_UP:
@@ -218,6 +235,9 @@ void special_keys(int key, int x, int y) {
             break;
     }
     glutPostRedisplay();
+}
+
+void info_special_keys(int key, int x, int y) {
 }
 
 // {{{ Normal keys
@@ -240,18 +260,53 @@ void normal_keys(unsigned char key, int x, int y) {
 }
 // }}}
 
-void info_render_scene() {
-    glClearColor(0, 0, 0, 0.0);
+void info_normal_keys(unsigned char key, int x, int y) {
 }
+
+void displayText(float x, float y, int r, int g, int b, const char *string) {
+    int j = strlen(string);
+
+    glColor3f(r, g, b);
+    glRasterPos2f(x, y);
+    for (int i = 0; i < j; i++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, string[i]);
+    }
+}
+
+
+
+clock_t c_start;
+void info() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    char str[10];
+    snprintf(str, 10, "%ld", (clock() - c_start) / CLOCKS_PER_SEC);
+    //displayText(-0.95, 0.9, 0, 0, 0, "Objetos restantes: -");
+    displayText(-0.95, 0.9, 0, 0, 0, str);
+    displayText(-0.95, 0.83, 0, 0, 0, "Objetos adquiridos: -");
+    displayText(-0.95, 0.76, 0, 0, 0, "Mudancas de direcao: -");
+    displayText(-0.95, 0.62, 0, 0, 0, "Tempo decorrido: -");
+    //caminho percorrido tem que ir em algum lugar
+    glutSwapBuffers();
+}
+
 
 // {{{ Main
 int main(int argc, char **argv) {
+    c_start = clock();
     std::srand(std::time(0));
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
+    glutInitWindowPosition(830, 40);
+    glutInitWindowSize(300, 300);
+    window2 = glutCreateWindow("Estatísticas");
+    glutDisplayFunc(info);
+    //glutIdleFunc(info);
+    init_info();
+
     glutInitWindowSize(800, 600);
+    glutInitWindowPosition(20, 40);
     window = glutCreateWindow("Janela Principal");
 
     glutDisplayFunc(render_scene);
@@ -260,11 +315,6 @@ int main(int argc, char **argv) {
     glutSpecialUpFunc(special_keys_up);
     glutKeyboardFunc(normal_keys);
     glutIdleFunc(render_idle_scene);
-
-    //info_window = glutCreateWindow("Janela Principal");
-    //glutDisplayFunc(info_render_scene);
-    //glutIdleFunc(info_render_scene);
-
     init();
 
     //surface->dump("matrix.txt");
