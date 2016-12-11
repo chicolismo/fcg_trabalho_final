@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 #else
 #include <gl/glut.h>
+#include <windows.h>
 #endif
 
 #include <vector>
@@ -301,8 +302,8 @@ public:
         }
 
 
-        int w = matrix->width;
-        int h = matrix->height;
+        int w = matrix->width - 1;
+        int h = matrix->height - 1;
         if (this->x < 0) {
             this->x = 0;
         } else if (this->x > w) {

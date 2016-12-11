@@ -4,6 +4,7 @@
 #include <GLUT/glut.h>
 #else
 #include <gl/glut.h>
+#include <windows.h>
 #endif
 
 #include "objects.hpp"
