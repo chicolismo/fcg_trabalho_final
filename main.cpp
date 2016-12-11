@@ -18,11 +18,15 @@ const double PERSPECTIVE_ANGLE = 45.0;
 const double CAMERA_ROTATION_ANGLE = 0.0349066; // Ângulo de rotação de 2 graus em radianos
 
 // Globais
+double window_width;
+double window_height;
+long long n_changed_direction = 0;
 GLuint window;
-GLuint window2;
+GLuint info_window;
 Matrix<Face> *surface;
 Camera *camera;
 std::vector<Enemy> enemies;
+std::vector<Point> coordinates;
 
 bool walking = false;
 bool rotating_right = false;
@@ -63,8 +67,13 @@ void init() {
 }
 // }}}
 
-double window_width;
-double window_height;
+void clean_up() {
+    for (auto &p : coordinates) {
+        std::cout << p.to_string() << '\n';
+    }
+    delete surface;
+    delete camera;
+}
 
 // {{{ World Reshape
 void world_reshape(GLsizei width, GLsizei height) {
@@ -93,7 +102,7 @@ void render_scene() {
     glViewport(0, 0, window_width, window_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(PERSPECTIVE_ANGLE, camera->f_aspect, 0.1, 500);
+    gluPerspective(PERSPECTIVE_ANGLE, camera->f_aspect, 1, 500);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(camera->atx, camera->aty, camera->atz,
@@ -187,7 +196,7 @@ void render_idle_scene() {
     }
 
     glutSwapBuffers();
-    glutSetWindow(window2);
+    glutSetWindow(info_window);
     info();
 }
 // }}}
@@ -203,10 +212,12 @@ void special_keys_up(int key, int x, int y) {
             break;
 
         case GLUT_KEY_RIGHT:
+            ++n_changed_direction;
             rotating_right = false;
             break;
 
         case GLUT_KEY_LEFT:
+            ++n_changed_direction;
             rotating_left = false;
             break;
     }
@@ -255,6 +266,11 @@ void normal_keys(unsigned char key, int x, int y) {
         case '2':
             camera->atz += 10;
             break;
+
+        case 'q':
+            clean_up();
+            exit(0);
+            break;
     }
     glutPostRedisplay();
 }
@@ -274,12 +290,19 @@ void displayText(float x, float y, int r, int g, int b, const char *string) {
 }
 
 
-
 clock_t c_start;
+long last_second = 0;
 void info() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     char str[10];
-    snprintf(str, 10, "%ld", (clock() - c_start) / CLOCKS_PER_SEC);
+    long seconds = (clock() - c_start) / CLOCKS_PER_SEC;
+
+    if (seconds != last_second) {
+        last_second = seconds;
+        coordinates.push_back(Point(camera->atx, camera->aty, camera->atz));
+    }
+
+    snprintf(str, 10, "%ld", seconds);
     //displayText(-0.95, 0.9, 0, 0, 0, "Objetos restantes: -");
     displayText(-0.95, 0.9, 0, 0, 0, str);
     displayText(-0.95, 0.83, 0, 0, 0, "Objetos adquiridos: -");
@@ -300,7 +323,7 @@ int main(int argc, char **argv) {
 
     glutInitWindowPosition(830, 40);
     glutInitWindowSize(300, 300);
-    window2 = glutCreateWindow("Estatísticas");
+    info_window = glutCreateWindow("Estatísticas");
     glutDisplayFunc(info);
     //glutIdleFunc(info);
     init_info();
@@ -319,9 +342,6 @@ int main(int argc, char **argv) {
 
     //surface->dump("matrix.txt");
     glutMainLoop();
-
-    delete camera;
-    delete surface;
 
     return 0;
 }
