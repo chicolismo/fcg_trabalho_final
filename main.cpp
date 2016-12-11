@@ -28,7 +28,7 @@ GLuint final_window;
 GLuint path_window;
 Matrix<Face> *surface;
 Camera *camera;
-int n_enemies = 15;
+int n_enemies = 5;
 int enemies_left = n_enemies;
 std::vector<Enemy> enemies;
 std::vector<Point> coordinates;
@@ -40,6 +40,7 @@ bool rotating_left = false;
 
 void clean_up();
 void info();
+void quit_game();
 
 void final_normal_keys(unsigned char key, int x, int y) {
     switch (key) {
@@ -110,9 +111,9 @@ void walked_path() {
 }
 
 void clean_up() {
-    for (auto &p : coordinates) {
-        std::cout << p.to_string() << '\n';
-    }
+    //for (auto &p : coordinates) {
+        //std::cout << p.to_string() << '\n';
+    //}
     delete surface;
     delete camera;
 }
@@ -141,9 +142,12 @@ void mini_map_reshape(GLsizei width, GLsizei height) {
 void test_colisions() {
     for (Enemy &e : enemies) {
         float d = e.distance_from(camera->atx, camera->aty, camera->atz);
-        if (e.is_touching(camera)) {
+        if (e.is_touching(camera) && e.alive) {
             e.die();
             --enemies_left;
+            if (enemies_left == 0) {
+                quit_game();
+            }
         }
     }
 }
@@ -324,6 +328,13 @@ void display_final_score() {
     init_info();
 }
 
+void quit_game() {
+    end_status = true;
+    glutDestroyWindow(window);
+    glutDestroyWindow(info_window);
+    display_final_score();
+}
+
 // {{{ Normal keys
 void normal_keys(unsigned char key, int x, int y) {
     switch (key) {
@@ -340,10 +351,7 @@ void normal_keys(unsigned char key, int x, int y) {
         camera->atz += 10;
         break;
     case 'q':
-        end_status = true;
-        glutDestroyWindow(window);
-        glutDestroyWindow(info_window);
-        display_final_score();
+        quit_game();
         break;
     }
     glutPostRedisplay();
@@ -367,8 +375,11 @@ void displayText(float x, float y, int r, int g, int b, const char *string) {
 clock_t c_start;
 double last_second = 0;
 void info() {
+    //int n_enemies = 15;
+    //int enemies_left = n_enemies;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    char str[20];
+    int str_len{ 20 };
+    char str[str_len];
     double seconds = ((double) (clock() - c_start)) / CLOCKS_PER_SEC;
 
     if (seconds - last_second > 0.25) {
@@ -376,18 +387,29 @@ void info() {
         coordinates.push_back(Point(camera->atx, camera->aty, camera->atz));
     }
 
-	displayText(-0.95, 0.90, 0, 0, 0, "Total de objetos: -");
-	displayText(-0.95, 0.83, 0, 0, 0, "Objetos restantes: -");
-    displayText(-0.95, 0.76, 0, 0, 0, "Objetos adquiridos: -");
+    // Número de objetos
+	displayText(-0.95, 0.90, 0, 0, 0, "Total de objetos: ");
+	snprintf(str, str_len, "%d", n_enemies);
+	displayText(0.20, 0.90, 0, 0, 0, str);
+	
+    // Objetos restantes
+	displayText(-0.95, 0.83, 0, 0, 0, "Objetos restantes: ");
+	snprintf(str, str_len, "%d", enemies_left);
+	displayText(0.20, 0.83, 0, 0, 0, str);
+	
+    // Objetos capturados
+    displayText(-0.95, 0.76, 0, 0, 0, "Objetos adquiridos: ");
+	snprintf(str, str_len, "%d", n_enemies - enemies_left);
+	displayText(0.20, 0.76, 0, 0, 0, str);
 
 	//direcao
-    displayText(-0.95, 0.69, 0, 0, 0, "Mudancas de direcao:");
-	snprintf(str, 10, "%lld", n_changed_direction);
+    displayText(-0.95, 0.69, 0, 0, 0, "Mudancas de direcao: ");
+	snprintf(str, str_len, "%lld", n_changed_direction);
 	displayText(0.20, 0.69, 0, 0, 0, str);
 
 	//tempo
-	displayText(-0.95, 0.62, 0, 0, 0, "Tempo decorrido:");
-	snprintf(str, 10, "%.0lf", seconds);
+	displayText(-0.95, 0.62, 0, 0, 0, "Tempo decorrido: ");
+	snprintf(str, str_len, "%.0lf", seconds);
 	int i =0;
 	while (str[i] != '\0') {
         ++i;
