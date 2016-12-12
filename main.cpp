@@ -23,6 +23,8 @@ const double PERSPECTIVE_ANGLE = 45.0;
 const double CAMERA_ROTATION_ANGLE = 0.0349066; // Ângulo de rotação de 2 graus em radianos
 const double timeout = 150.0f; // Máximo de tempo para terminar o jogo
 
+// Vetores de luz
+
 // Globais
 clock_t c_start;
 double last_second = 0;
@@ -100,11 +102,54 @@ void init_objects() {
     camera->set_matrix(surface);
 }
 
+// Parâmetros de iluminação
+const GLfloat luzAmbiente[4] = {0.4, 0.4, 0.4, 1.0};
+const GLfloat luzDifusa[4] = {0.7, 0.7, 0.7, 1.0}; // cor
+const GLfloat luzEspecular[4] = {1.0, 1.0, 1.0, 1.0}; // brilho
+const GLfloat posicaoLuz[4] = {50.0, 50.0, 50.0, 0.0}; // inicial
+
+// Capacidade de brilho do material
+GLfloat especularidade[4]={1.0,1.0,1.0,1.0}; 
+GLint especMaterial = 128;
+
 // {{{ Inicialização
 void init() {
+    //Habilita o uso de iluminação
+    glEnable(GL_LIGHTING);
+
+    // Define os parâmetros da luz de número 0
+    glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular);
+    glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz);
+
+    // Habilita a luz de número 0
+    glEnable(GL_LIGHT0);
+
+    // Ativa o uso da luz ambiente
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
+
+    // Define a refletância do material
+    // Usa apenas propriedade especular
+    glMaterialfv(GL_FRONT, GL_SPECULAR, especularidade);
+
+    // Define a concentração do brilho da superficie
+    glMateriali(GL_FRONT, GL_SHININESS, especMaterial);
+
+    // Habilita a definição da cor do material
+    // a partir da cor corrente
+    // Experimente colocar em comentário as linhas abaixo ...
+
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_CULL_FACE);
+
     glEnable(GL_DEPTH_TEST); // Maldita linha que estava faltando.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
+    //glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
+    glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // Fundo azul
 }
 // }}}
 
@@ -200,7 +245,7 @@ void render_scene() {
     }
 
     // Mini map
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
+    //glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
     double minimap_width = window_width / 4;
     double minimap_height = window_height / 4;
     glViewport(window_width - minimap_width, window_height - minimap_height, minimap_width,
@@ -263,7 +308,7 @@ void render_idle_scene() {
         }
 
         // Mini map
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
+        //glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Fundo branco
         double minimap_width = window_width / 4;
         double minimap_height = window_height / 4;
         glViewport(window_width - minimap_width, window_height - minimap_height, minimap_width,

@@ -90,6 +90,32 @@ public:
     }
 
     void render() {
+        // Calcula a normal de cada face
+        /*
+        Point a, b, c;
+        float v1, v2, v3, u1, u2, u3, i, j, k, root;
+        a = vertices[0];
+        b = vertices[1];
+        c = vertices[2];
+
+        v1 = a.x - b.x;
+        v2 = a.y - b.y;
+        v3 = a.z - b.z;
+
+        u1 = c.x - b.x;
+        u2 = c.y - b.y;
+        u3 = c.z - b.z;
+
+        i = (v2 * u3) - (v3 * u2);
+        j = (v3 * u1) - (v1 * u3);
+        k = (v1 * u2) - (v2 * u1);
+
+        root = std::sqrt(i * i + j * j + k * k);
+        i = i / root;
+        j = j / root;
+        k = k / root;
+        glNormal3f(i, j, k);
+        */
         for (auto &v : vertices) {
             glVertex3f(v.x, v.y, v.z);
         }
