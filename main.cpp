@@ -76,6 +76,8 @@ void final_normal_keys(unsigned char key, int x, int y) {
     case 'r':
     case 'R':
         if (end_status) {
+            glutDestroyWindow(info_window);
+            glutDestroyWindow(path_window);
             start_game();
         }
     }
