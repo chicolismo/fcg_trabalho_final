@@ -151,13 +151,14 @@ public:
         glEnd();
 
         /*
-         *for (auto &obj : array) {
-         *    glBegin(GL_LINE_LOOP);
-         *    glColor3f(0.f, 0.f, 0.f);
-         *        obj.render();
-         *    glEnd();
-         *}
-         */
+        // Desenha as arestas das faces
+        for (auto &obj : array) {
+            glBegin(GL_LINE_LOOP);
+            glColor3f(0.f, 0.f, 0.f);
+            obj.render();
+            glEnd();
+        }
+        */
     }
 
     void dump(const std::string &filename) {
@@ -191,11 +192,9 @@ void print_matrix(Matrix<T> &m) {
 }
 
 #ifdef __APPLE__
+// Constrói a matriz de quads a partir de uma imagem
 Matrix<Face> *read_image() {
-    //cv::Mat image = cv::imread("image.jpg");
-    //cv::Mat image = cv::imread("south_park.png");
     cv::Mat image = cv::imread("heightdata.png");
-    // cv::Mat image = cv::imread("heightmap.bmp");
     cv::Size size = image.size();
 
     const int width = size.width - 1;
@@ -227,6 +226,7 @@ Matrix<Face> *read_image() {
 }
 #endif
 
+// Lê a matriz a partir de um "dump" em um arquivo de texto
 void read_file(Matrix<Face> **matrix, const std::string &filename) {
     std::ifstream file;
     size_t width, height;
@@ -408,7 +408,6 @@ public:
             break;
         }
 
-
         int w = matrix->width - 1;
         int h = matrix->height - 1;
         if (this->x < 0) {
@@ -433,8 +432,6 @@ public:
             new_z += p.z;
         }
         this->z = 0.5 + (new_z / 4);
-        /*
-        */
     }
 
     void render() {

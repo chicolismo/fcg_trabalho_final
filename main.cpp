@@ -67,12 +67,14 @@ void initialize_global_values() {
 void final_normal_keys(unsigned char key, int x, int y) {
     switch (key) {
     case 'q':
+    case 'Q':
         if (end_status) {
             clean_up();
             exit(0);
         }
         break;
     case 'r':
+    case 'R':
         if (end_status) {
             start_game();
         }
@@ -407,13 +409,14 @@ void normal_keys(unsigned char key, int x, int y) {
     case '[':
         camera->change_velocity(-0.5);
         break;
-    case '1':
+    case '1': // Para debug
         camera->atz -= 10;
         break;
-    case '2':
+    case '2': // Para debug
         camera->atz += 10;
         break;
     case 'q':
+    case 'Q':
         quit_game();
         break;
     }
